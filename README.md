@@ -207,7 +207,7 @@ Claim approved → UPI payout initiated → Worker notified
 ₹ arrives in 60 seconds. Worker never filed anything.
 ```
 
-### 5. Fraud Detection — Six Layers, Zero Confrontation
+### 5. Fraud Detection — Six Layers, Zero Confrontation (Market Crash Solution)
 
 InsureFlow never accuses a worker. It simply cross-validates. Fraud is caught by data, not interrogation.
 

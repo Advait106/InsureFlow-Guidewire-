@@ -672,8 +672,8 @@ Other fraud systems interrogate workers and create adversarial dynamics. InsureF
 - [x] Tech stack finalised
 - [x] ML model architecture defined
 - [x] **Adversarial Defense & Anti-Spoofing Strategy** — 6-layer architecture, sensor fusion, syndicate detection, UX balance protocol
-- [ ] GitHub repository live (in progress)
-- [ ] 2-minute prototype video (in progress)
+- [x] GitHub repository live (in progress)
+- [x] 2-minute prototype video (in progress)
 
 ---
 

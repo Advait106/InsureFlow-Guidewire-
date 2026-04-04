@@ -15,12 +15,12 @@ const MOCK_USERS = {
 };
 
 const ZONES = [
-  { name: 'BTM Layout', emoji: '🔴', risk: 'red', status: 'Flood Risk', earnings: '₹680/day', riskScore: 78 },
-  { name: 'Koramangala', emoji: '🟡', risk: 'amber', status: 'Moderate', earnings: '₹920/day', riskScore: 45 },
-  { name: 'HSR Layout', emoji: '🟢', risk: 'green', status: 'Safe', earnings: '₹850/day', riskScore: 18 },
-  { name: 'Indiranagar', emoji: '🔵', risk: 'blue', status: 'Surge Zone', earnings: '₹1,040/day', riskScore: 22 },
-  { name: 'Whitefield', emoji: '🟢', risk: 'green', status: 'Safe', earnings: '₹780/day', riskScore: 12 },
-  { name: 'Jayanagar', emoji: '🟡', risk: 'amber', status: 'Moderate', earnings: '₹860/day', riskScore: 38 },
+  { name: 'BTM Layout', emoji: 'BTM', risk: 'red', status: 'Flood Risk', earnings: '₹680/day', riskScore: 78 },
+  { name: 'Koramangala', emoji: 'KOR', risk: 'amber', status: 'Moderate', earnings: '₹920/day', riskScore: 45 },
+  { name: 'HSR Layout', emoji: 'HSR', risk: 'green', status: 'Safe', earnings: '₹850/day', riskScore: 18 },
+  { name: 'Indiranagar', emoji: 'IND', risk: 'blue', status: 'Surge Zone', earnings: '₹1,040/day', riskScore: 22 },
+  { name: 'Whitefield', emoji: 'WHT', risk: 'green', status: 'Safe', earnings: '₹780/day', riskScore: 12 },
+  { name: 'Jayanagar', emoji: 'JAY', risk: 'amber', status: 'Moderate', earnings: '₹860/day', riskScore: 38 },
 ];
 
 const PAYOUT_HISTORY = [
@@ -37,16 +37,17 @@ const KARMA_ORDERS = [
 ];
 
 const FRAUD_LAYERS = [
-  { icon: '📍', name: 'GPS Zone Validation', desc: 'Worker confirmed in affected zone during trigger window', result: 'pass', detail: 'HSR Layout, 14:30–16:45' },
-  { icon: '🚴', name: 'Movement Analysis', desc: 'Kinematic velocity check — no GPS teleportation detected', result: 'pass', detail: 'Avg speed 18.4 km/h, normal' },
-  { icon: '🧬', name: 'Earnings DNA Match', desc: 'Behavioral coherence with historical patterns', result: 'pass', detail: 'p_active = 0.82 (expected: 0.79)' },
-  { icon: '👥', name: 'Peer Network Validation', desc: 'Peer disruption cluster: 47 workers affected in same zone', result: 'pass', detail: 'T_spike = 2.1σ (within threshold)' },
-  { icon: '📱', name: 'Device Fingerprint', desc: 'Device ID consistent with registration — no spoofing detected', result: 'pass', detail: 'IMEI match: confirmed' },
-  { icon: '⚡', name: 'Velocity Fraud Check', desc: 'Claim frequency within normal range for this worker', result: 'pass', detail: 'Claim #3 this quarter (avg: 2.8)' },
+  { icon: 'MapPin', name: 'GPS Zone Validation', desc: 'Worker confirmed in affected zone during trigger window', result: 'pass', detail: 'HSR Layout, 14:30–16:45' },
+  { icon: 'Zap', name: 'Movement Analysis', desc: 'Kinematic velocity check — no GPS teleportation detected', result: 'pass', detail: 'Avg speed 18.4 km/h, normal' },
+  { icon: 'Dna', name: 'Earnings DNA Match', desc: 'Behavioral coherence with historical patterns', result: 'pass', detail: 'p_active = 0.82 (expected: 0.79)' },
+  { icon: 'Users', name: 'Peer Network Validation', desc: 'Peer disruption cluster: 47 workers affected in same zone', result: 'pass', detail: 'T_spike = 2.1σ (within threshold)' },
+  { icon: 'Smartphone', name: 'Device Fingerprint', desc: 'Device ID consistent with registration — no spoofing detected', result: 'pass', detail: 'IMEI match: confirmed' },
+  { icon: 'Activity', name: 'Velocity Fraud Check', desc: 'Claim frequency within normal range for this worker', result: 'pass', detail: 'Claim #3 this quarter (avg: 2.8)' },
 ];
 
 // =========== APP STATE ===========
 const state = {
+  isSignUpMode: false,
   screen: 'splash',
   onboardStep: 0,
   user: null,
@@ -66,64 +67,82 @@ const state = {
 // =========== DEMO STEPS ===========
 const DEMO_STEPS = [
   {
-    id: 'intro', icon: '👤', title: 'Meet Raju Sharma',
-    desc: 'Raju is a Zomato delivery partner in Bengaluru, earning ~₹5,800/week. His shield is active. It\'s Thursday morning.',
+    id: 'intro', icon: 'User', title: 'Meet Raju Sharma',
+    desc: 'Raju is a Zomato delivery partner in Bengaluru, earning ~₹5,800/week. His Earnings DNA is established. It\'s Thursday morning.',
     screen: 'home', action: () => {
       setEarnings(620, 5, 4.5);
       updateRisk(22, 18, 38, 'low');
     }
   },
   {
-    id: 'warn', icon: '⚠️', title: 'WARN — Rain Alert Incoming',
-    desc: 'IMD API detects heavy rainfall approaching BTM Layout. InsureFlow sends a proactive alert before disruption hits.',
+    id: 'karma', icon: 'AlertCircle', title: 'High Risk Order Detected',
+    desc: '<b>UNIQUE FEATURE — CUSTOMER KARMA RISK</b><br><br>Customer Risk Score: <span style="color:var(--red);font-weight:700;">High</span><br><br>Analyzed Patterns:<br>• High cancellation rate (34%)<br>• Frequent delivery failures<br>• Previous payment disputes<br><br><i>Protection activated at a higher sensitivity for this specific trip.</i>',
+    screen: 'earnings', action: () => {
+      showKarmaOrderWarning();
+    }
+  },
+  {
+    id: 'warn', icon: 'CloudRain', title: 'Rain Prediction Alert',
+    desc: 'IMD API detects heavy rainfall approaching BTM Layout. InsureFlow sends a proactive alert before earnings are disrupted.',
     screen: 'alerts', action: () => {
-      addAlert('🌧️ Heavy Rainfall Warning', 'IMD forecasts 68mm rainfall in BTM Layout zone 2–5 PM. Earnings risk: HIGH. Activate now for rain protection.', 'high');
+      addAlert('Heavy Rainfall Warning', 'IMD forecasts 68mm rainfall in BTM Layout zone 2–5 PM. Earnings risk: HIGH. Shield active.', 'high');
       updateRisk(68, 84, 55, 'medium');
       document.getElementById('alert-nav-badge').classList.remove('hidden');
       document.getElementById('alert-nav-badge').textContent = '1';
     }
   },
   {
-    id: 'escalate', icon: '🚨', title: 'PROTECT — Triggers Activate',
-    desc: 'Rainfall crosses 65mm threshold. Earnings velocity drops below 40%. Multiple parametric triggers fire simultaneously.',
+    id: 'escalate', icon: 'ShieldAlert', title: 'Parametric Trigger Activated',
+    desc: 'Rainfall crosses 65mm threshold. Earnings velocity drops below 40%. All parametric triggers have fired automatically.',
     screen: 'alerts', action: () => {
-      addAlert('🚨 TRIGGER ACTIVATED', 'Rainfall: 71mm ✓  |  Earnings velocity: -62% ✓  |  Zone inactivity: 74% ✓  |  Protection floor activated automatically.', 'high');
+      addAlert('TRIGGER ACTIVATED', 'Rainfall: 71mm [PASS] | Earnings velocity: -62% [PASS] | Protection floor activated.', 'high');
       updateRisk(71, 142, 78, 'high');
       updateTriggers({ rainfall: 'triggered', earnings: 'triggered', inactivity: 'triggered' });
     }
   },
   {
-    id: 'validate', icon: '🔍', title: 'Fraud Validation Starts',
-    desc: 'InsureFlow\'s 6-layer fraud engine runs silently. GPS confirmed in zone, movement normal, peer network validates — clean.',
+    id: 'validate', icon: 'Fingerprint', title: 'Fraud Engine Processing',
+    desc: 'InsureFlow\'s 6-layer behavioral engine runs. GPS confirmed, movement kinematic check passes, peer network validates disruption.',
     screen: 'fraud', action: () => {
-      animateFraudCheck(20, 'LOW RISK', 'All 6 validation layers passed. Claim pre-approved.');
+      animateFraudCheck(20, 'LOW RISK', 'All 6 validation layers passed. Auto-claim pre-approved.');
     }
   },
   {
-    id: 'claim', icon: '⏱️', title: 'Auto Claim Processing',
-    desc: 'Zero-touch claim triggered automatically. No forms, no calls. Raju doesn\'t need to do anything.',
+    id: 'claim', icon: 'Clock', title: 'Zero-Touch Claim Initiated',
+    desc: 'Trigger processing complete. No forms, no evidence required. Raju\'s payout is being calculated based on his Earnings DNA.',
     screen: 'claims', action: () => {
       activateClaim(450);
     }
   },
   {
-    id: 'pay', icon: '💸', title: 'PAY — ₹450 Sent to UPI',
-    desc: 'Gap between floor (₹4,350) and actual earnings (₹3,900) = ₹450. Paid in 58 seconds. Done.',
+    id: 'pay', icon: 'CheckCircle', title: '₹450 Payout Successful',
+    desc: 'Protection gap (Floor vs Actual) = ₹450. Funds transferred to UPI in 58 seconds. System reset for next week.',
     screen: 'claims', action: () => {
       setTimeout(() => showPayoutOverlay(450, 'raju@upi'), 800);
-    }
-  },
-  {
-    id: 'done', icon: '✅', title: 'Demo Complete',
-    desc: 'Raju\'s daughter goes to school on Monday. That\'s what ₹450 on a Sunday night means.',
-    screen: 'home', action: () => {
-      addToPayoutHistory(450, "Today", "Rain trigger + earnings drop");
-      setEarnings(4350, 14, 8.5);
     }
   }
 ];
 
-// =========== INIT ===========
+function getIcon(name) {
+  const icons = {
+    User: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    MapPin: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    Zap: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    Dna: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2c1 .5 2 2 2 5s-1 4.5-2 5c-1 .5-2 2-2 5s1 4.5 2 5"/><path d="M14 2c-1 .5-2 2-2 5s1 4.5 2 5c1 .5 2 2 2 5s-1 4.5-2 5"/></svg>',
+    Users: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    Smartphone: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+    Activity: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    CheckCircle: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    Clock: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    AlertCircle: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    CloudRain: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>',
+    ShieldAlert: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    Wallet: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>',
+  };
+  return icons[name] || icons.AlertCircle;
+}
+
+// =========== UTILS ===========
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
@@ -159,6 +178,46 @@ function registerServiceWorker() {
   }
 }
 
+// =========== SCREEN MANAGEMENT ===========
+function showScreen(id) {
+  state.screen = id;
+  const screens = ['onboarding', 'setup', 'dna-building', 'main-app', 'admin-dashboard'];
+  
+  screens.forEach(s => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    el.classList.add('hidden');
+    el.classList.remove('active');
+  });
+
+  const target = document.getElementById(id);
+  if (!target) return;
+  
+  target.classList.remove('hidden');
+  // Small delay to trigger CSS transition
+  setTimeout(() => target.classList.add('active'), 50);
+  window.scrollTo(0, 0);
+}
+
+function switchAppScreen(id) {
+  // Main app sub-screens
+  document.querySelectorAll('.app-screen').forEach(s => {
+    s.classList.add('hidden');
+    s.classList.remove('active');
+  });
+  
+  const target = document.getElementById('screen-' + id);
+  if (target) {
+     target.classList.remove('hidden');
+     setTimeout(() => target.classList.add('active'), 50);
+  }
+  
+  // Nav buttons
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.screen === id);
+  });
+}
+
 // =========== EVENT BINDING ===========
 function bindEvents() {
   // Onboarding navigation
@@ -174,9 +233,28 @@ function bindEvents() {
     });
   });
 
-  // Setup form
+  // Setup tabs
+  document.getElementById('tab-login').addEventListener('click', () => toggleSetupMode(false));
+  document.getElementById('tab-signup').addEventListener('click', () => toggleSetupMode(true));
+
+  // Admin login toggle & auth
+  if (document.getElementById('admin-login-cancel')) {
+    document.getElementById('admin-login-cancel').addEventListener('click', () => showScreen('setup'));
+  }
+  if (document.getElementById('admin-auth-submit')) {
+    document.getElementById('admin-auth-submit').addEventListener('click', handleAdminAuth);
+  }
+
+  // Setup form submission
   document.getElementById('setup-submit').addEventListener('click', handleSetup);
   document.getElementById('demo-quick-start').addEventListener('click', startDemoQuickSetup);
+
+  // Global input Enter listener
+  document.querySelectorAll('.input-field').forEach(input => {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSetup();
+    });
+  });
 
   // DNA done
   document.getElementById('dna-done').addEventListener('click', () => {
@@ -202,9 +280,99 @@ function bindEvents() {
   document.getElementById('demo-guide-cancel').addEventListener('click', () => {
     document.getElementById('demo-guide-overlay').classList.add('hidden');
   });
+  document.getElementById('demo-prev').addEventListener('click', prevDemoStep);
   document.getElementById('demo-advance').addEventListener('click', advanceDemoStep);
   document.getElementById('demo-exit').addEventListener('click', exitDemoMode);
   document.getElementById('notif-btn').addEventListener('click', showDemoGuide);
+
+  // Profile & Logout
+  const profileMenu = document.getElementById('profile-menu');
+  if (document.getElementById('profile-btn')) {
+    document.getElementById('profile-btn').addEventListener('click', () => {
+      profileMenu.classList.toggle('hidden');
+    });
+  }
+  if (document.getElementById('logout-btn')) {
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+  }
+
+  // Admin Dashboard actions
+  if (document.getElementById('admin-logout-btn')) {
+    document.getElementById('admin-logout-btn').addEventListener('click', () => {
+      showScreen('setup');
+    });
+  }
+  if (document.getElementById('admin-trigger-alert')) {
+    document.getElementById('admin-trigger-alert').addEventListener('click', simulateDisasterEvent);
+  }
+}
+
+// =========== LOGOUT ===========
+function handleLogout() {
+  localStorage.removeItem('insureflow_user');
+  state.user = null;
+  document.getElementById('profile-menu').classList.add('hidden');
+  document.getElementById('main-app').classList.add('hidden');
+  showScreen('setup');
+}
+
+// =========== ADMIN DASHBOARD ===========
+function initAdminDashboard() {
+  showScreen('admin-dashboard');
+
+  // Render Admin Zones
+  const grid = document.getElementById('admin-zone-grid');
+  grid.innerHTML = '';
+  ZONES.forEach((z, i) => {
+    grid.innerHTML += `
+      <div class="admin-zone-row" id="admin-zone-${i}">
+        <div class="admin-zone-info">
+          <div class="zone-badge-sm ${z.risk}">${z.emoji}</div>
+          <div>
+            <div style="font-weight:600; font-size:14px; margin-bottom:2px;">${z.name}</div>
+            <div style="font-size:11px; color:var(--gray-400);">Status: ${z.status}</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700;">Risk: <span class="admin-risk-score">${z.riskScore}</span></div>
+          <div style="font-size:10px; color:var(--gray-400);">Policies: ${Math.floor(Math.random() * 1000 + 400)}</div>
+        </div>
+      </div>
+    `;
+  });
+
+  // Render Admin Claims
+  const claimsFeed = document.getElementById('admin-claims-feed');
+  claimsFeed.innerHTML = '';
+  PAYOUT_HISTORY.forEach(p => {
+    claimsFeed.innerHTML += `
+      <div class="admin-claim-item">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; background:rgba(34,197,94,0.1); border-radius:18px; display:flex; align-items:center; justify-content:center; color:var(--green); font-size:18px;">✓</div>
+          <div>
+            <div style="font-weight:600; font-size:13px; margin-bottom:2px;">Settlement • ${p.trigger}</div>
+            <div style="font-size:11px; color:var(--gray-400);">${p.date} • ZOM-${Math.floor(Math.random()*8000+1000)}</div>
+          </div>
+        </div>
+        <div style="color:var(--green); font-weight:700; font-family:'Sora',sans-serif;">₹${p.amount}</div>
+      </div>
+    `;
+  });
+}
+
+function simulateDisasterEvent() {
+  ZONES.forEach((z, i) => {
+    const row = document.getElementById('admin-zone-' + i);
+    if (row) {
+      row.classList.add('risk-high');
+      row.querySelector('.admin-risk-score').textContent = Math.floor(Math.random() * 20 + 80);
+      row.querySelector('.admin-risk-score').style.color = 'var(--pink)';
+    }
+  });
+  const alertBtn = document.getElementById('admin-trigger-alert');
+  alertBtn.textContent = 'Triggers Activated!';
+  alertBtn.style.background = 'var(--pink)';
+  alertBtn.style.color = 'white';
 }
 
 // =========== ONBOARDING ===========
@@ -236,12 +404,135 @@ function goToSlide(idx) {
 }
 
 // =========== SETUP ===========
+function toggleSetupMode(isSignUp) {
+  state.isSignUpMode = isSignUp;
+  document.getElementById('tab-login').classList.toggle('active', !isSignUp);
+  document.getElementById('tab-signup').classList.toggle('active', isSignUp);
+  
+  document.getElementById('signup-fields').classList.toggle('hidden', !isSignUp);
+  
+  document.getElementById('setup-title-text').innerHTML = isSignUp ? "Let's get you<br><span class='gradient-text'>protected.</span>" : "Welcome<br><span class='gradient-text'>back.</span>";
+  document.getElementById('setup-sub-text').textContent = isSignUp ? "Enter your Zomato details to build your Earnings DNA" : "Enter your Zomato Partner ID to resume your session";
+  document.getElementById('setup-submit-text').textContent = isSignUp ? "Build My Earnings DNA" : "Log In";
+  
+  // Toggle admin hint visibility
+  document.getElementById('admin-hint').style.display = isSignUp ? "none" : "block";
+  
+  // Clear errors
+  document.querySelectorAll('.input-hint.error').forEach(e => e.classList.remove('error'));
+  document.querySelectorAll('.input-field.error-border').forEach(e => e.classList.remove('error-border'));
+  document.getElementById('partner-id-hint').textContent = "Must start with 'ZOM-'";
+  document.getElementById('partner-id-hint').style.color = "var(--gray-500)";
+  document.getElementById('partner-id-hint').classList.remove('error');
+  document.getElementById('partner-password-hint').classList.add('hidden');
+}
+
 function handleSetup() {
-  const id = document.getElementById('partner-id').value.trim() || 'ZOM-2947381';
-  const name = document.getElementById('partner-name').value.trim() || 'Partner';
-  const zone = document.querySelector('.zone-btn.active')?.dataset.zone || 'HSR Layout';
-  const upi = document.getElementById('upi-id').value.trim() || 'partner@upi';
-  setupUser({ id, name, zone, upi });
+  const idField = document.getElementById('partner-id');
+  const idHint = document.getElementById('partner-id-hint');
+  let id = idField.value.trim();
+  
+  // Validation
+  let hasError = false;
+
+  // Secret Admin Route
+  if (id.toUpperCase() === 'ADMIN') {
+    const password = document.getElementById('partner-password').value.trim().toLowerCase();
+    if (password === 'admin' || password === 'admin123') {
+       initAdminDashboard();
+       return;
+    } else {
+       const passHint = document.getElementById('partner-password-hint');
+       passHint.textContent = "Incorrect admin passcode";
+       passHint.classList.remove('hidden');
+       passHint.classList.add('error');
+       document.getElementById('partner-password').classList.add('error-border');
+       return;
+    }
+  }
+  
+  if (!id.startsWith('ZOM-')) {
+    idHint.textContent = "ID must start with ZOM-";
+    idHint.style.color = "var(--red)";
+    idHint.classList.add('error');
+    idField.classList.add('error-border');
+    hasError = true;
+  } else {
+    idHint.textContent = "Found in Zomato Partner app → Profile";
+    idHint.style.color = "var(--gray-500)";
+    idHint.classList.remove('error');
+    idField.classList.remove('error-border');
+  }
+
+  const passField = document.getElementById('partner-password');
+  const passHint = document.getElementById('partner-password-hint');
+  if (!passField.value.trim()) {
+    passField.classList.add('error-border');
+    passHint.classList.remove('hidden');
+    passHint.classList.add('error');
+    hasError = true;
+  } else {
+    passField.classList.remove('error-border');
+    passHint.classList.add('hidden');
+    passHint.classList.remove('error');
+  }
+
+  let name = "Partner";
+  let upi = "partner@upi";
+  
+  if (state.isSignUpMode) {
+    const nameField = document.getElementById('partner-name');
+    const nameHint = document.getElementById('partner-name-hint');
+    if (!nameField.value.trim()) {
+      nameHint.classList.remove('hidden');
+      nameField.classList.add('error-border');
+      hasError = true;
+    } else {
+      nameHint.classList.add('hidden');
+      nameField.classList.remove('error-border');
+      name = nameField.value.trim();
+    }
+    
+    const upiField = document.getElementById('upi-id');
+    const upiHint = document.getElementById('upi-hint');
+    if (!upiField.value.includes('@')) {
+      upiHint.textContent = "Must be a valid UPI (e.g. name@bank)";
+      upiHint.style.color = "var(--red)";
+      upiField.classList.add('error-border');
+      hasError = true;
+    } else {
+      upiHint.textContent = "Must contain '@'";
+      upiHint.style.color = "var(--gray-500)";
+      upiField.classList.remove('error-border');
+      upi = upiField.value.trim();
+    }
+  }
+
+  if (hasError) return;
+
+  const btn = document.getElementById('setup-submit');
+  btn.classList.add('btn-loading');
+  
+  setTimeout(() => {
+    btn.classList.remove('btn-loading');
+    const zone = document.querySelector('.zone-btn.active')?.dataset.zone || 'HSR Layout';
+    
+    if (state.isSignUpMode) {
+      MOCK_USERS[id] = { id, name, zone, upi, baseline: 5800, floor: 4350, premium: 52, weeklyEarned: 0, todayEarned: 0, todayOrders: 0, todayHours: 0 };
+      toggleSetupMode(false);
+      document.getElementById('partner-id').value = id;
+      document.getElementById('setup-title-text').innerHTML = "Account<br><span class='gradient-text'>Ready.</span>";
+      document.getElementById('setup-sub-text').textContent = "Identity verified. Please log in to proceed.";
+      document.getElementById('setup-sub-text').style.color = "var(--green)";
+    } else {
+      const userData = MOCK_USERS[id] || { ...MOCK_USERS.default, id };
+      setupUser(userData);
+    }
+  }, 1500);
+}
+
+function handleAdminAuth() {
+   // Legacy - removed
 }
 
 function startDemoQuickSetup() {
@@ -258,6 +549,27 @@ function setupUser(data) {
 }
 
 function runDNAAnimation(user) {
+  const container = document.getElementById('dna-helix-v2');
+  if (container) {
+    container.innerHTML = '';
+    // Create 12 pairs of dots for the double helix
+    for (let i = 0; i < 12; i++) {
+       const delay = (i * 0.15).toFixed(2) + 's';
+       const dotA = document.createElement('div');
+       dotA.className = 'helix-dot a';
+       dotA.style.setProperty('--d', delay);
+       dotA.style.top = (i * 10) + 'px';
+       
+       const dotB = document.createElement('div');
+       dotB.className = 'helix-dot b';
+       dotB.style.setProperty('--d', delay);
+       dotB.style.top = (i * 10) + 'px';
+       
+       container.appendChild(dotA);
+       container.appendChild(dotB);
+    }
+  }
+
   const steps = [
     { id: 0, status: 'Analyzing 12 weeks of earnings...', done: 'Baseline: ₹5,800/week', delay: 0 },
     { id: 1, status: 'Mapping HSR, Koramangala, BTM...', done: 'Zone risk: Medium', delay: 1200 },
@@ -269,7 +581,6 @@ function runDNAAnimation(user) {
   steps.forEach(({ id, status, done, delay }) => {
     const el = document.querySelector(`.dna-step[data-step="${id}"]`);
     const statusEl = document.getElementById(`step-${id}-status`);
-    const checkEl = document.getElementById(`step-${id}-check`);
 
     setTimeout(() => {
       el.classList.add('active');
@@ -280,8 +591,7 @@ function runDNAAnimation(user) {
       el.classList.remove('active');
       el.classList.add('done');
       statusEl.textContent = done;
-      checkEl.classList.remove('hidden');
-    }, delay + 900);
+    }, delay + 1000);
   });
 
   setTimeout(() => {
@@ -490,11 +800,11 @@ function activateClaim(amount) {
   document.getElementById('claim-amount-display').textContent = '₹' + amount;
 
   const steps = [
-    { label: 'Trigger Detected', icon: '⚡', delay: 0 },
-    { label: 'Validating GPS & Movement', icon: '📍', delay: 600 },
-    { label: 'Running Fraud Checks (6 layers)', icon: '🔍', delay: 1400 },
-    { label: 'Claim Approved', icon: '✅', delay: 2400 },
-    { label: 'Payout Sent to UPI', icon: '💸', delay: 3200 },
+    { label: 'Trigger Detected', icon: 'Zap', delay: 0 },
+    { label: 'Validating GPS & Movement', icon: 'MapPin', delay: 600 },
+    { label: 'Running Fraud Checks (6 layers)', icon: 'Activity', delay: 1400 },
+    { label: 'Claim Approved', icon: 'CheckCircle', delay: 2400 },
+    { label: 'Payout Sent to UPI', icon: 'Wallet', delay: 3200 },
   ];
 
   const timeline = document.getElementById('claim-timeline');
@@ -504,7 +814,7 @@ function activateClaim(amount) {
     const el = document.createElement('div');
     el.className = 'timeline-step';
     el.id = 'ts-' + i;
-    el.innerHTML = `<div class="ts-dot">${step.icon}</div>
+    el.innerHTML = `<div class="ts-dot">${getIcon(step.icon)}</div>
       <div class="ts-info">
         <div class="ts-label">${step.label}</div>
         <div class="ts-time" id="ts-time-${i}">Waiting...</div>
@@ -540,7 +850,7 @@ function addToPayoutHistory(amount, date, trigger) {
   const item = document.createElement('div');
   item.className = 'payout-item';
   item.innerHTML = `
-    <div class="payout-item-icon">💸</div>
+    <div class="payout-item-icon">${getIcon('Wallet')}</div>
     <div class="payout-item-info">
       <div class="payout-item-label">Weekly settlement</div>
       <div class="payout-item-date">${date} · ${trigger}</div>
@@ -575,7 +885,7 @@ function renderPayoutHistory() {
   PAYOUT_HISTORY.forEach(p => {
     list.insertAdjacentHTML('beforeend', `
       <div class="payout-item">
-        <div class="payout-item-icon">💸</div>
+        <div class="payout-item-icon">${getIcon('Wallet')}</div>
         <div class="payout-item-info">
           <div class="payout-item-label">${p.label}</div>
           <div class="payout-item-date">${p.date} · ${p.trigger}</div>
@@ -592,7 +902,9 @@ function renderKarmaOrders() {
   KARMA_ORDERS.forEach(o => {
     list.insertAdjacentHTML('beforeend', `
       <div class="karma-order">
-        <div style="font-size:24px">🛵</div>
+        <div class="karma-order-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
         <div class="karma-order-info">
           <div class="karma-order-label">${o.customer} · ${o.area}</div>
           <div class="karma-order-details">${o.distance} · ${o.amount} · ${o.issue}</div>
@@ -609,7 +921,7 @@ function renderFraudLayers(layers = FRAUD_LAYERS) {
   layers.forEach(layer => {
     list.insertAdjacentHTML('beforeend', `
       <div class="fraud-layer">
-        <div class="fraud-layer-icon">${layer.icon}</div>
+        <div class="fraud-layer-icon">${getIcon(layer.icon)}</div>
         <div class="fraud-layer-info">
           <div class="fraud-layer-name">${layer.name}</div>
           <div class="fraud-layer-desc">${layer.desc}</div>
@@ -675,7 +987,7 @@ function renderEarningsChart() {
 
 // =========== SCREEN NAVIGATION ===========
 function showScreen(id) {
-  const allScreens = ['splash', 'onboarding', 'setup', 'dna-building', 'main-app'];
+  const allScreens = ['splash', 'onboarding', 'setup', 'dna-building', 'main-app', 'admin-dashboard'];
   allScreens.forEach(s => {
     const el = document.getElementById(s);
     if (el) el.classList.toggle('hidden', s !== id);
@@ -752,11 +1064,17 @@ function showDemoTooltip(step) {
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <span style="font-size:20px">${step.icon}</span>
       <strong style="font-size:14px;color:var(--gray-900)">${step.title}</strong>
-      <button onclick="this.parentElement.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:var(--gray-400);font-size:18px;cursor:pointer">×</button>
+      <button onclick="exitDemoMode()" style="margin-left:auto;background:none;border:none;color:var(--gray-400);font-size:18px;cursor:pointer" title="Exit Walkthrough">×</button>
     </div>
-    <p style="font-size:13px;color:var(--gray-500);line-height:1.5">${step.desc}</p>`;
+    <p style="font-size:13px;color:var(--gray-500);line-height:1.5;margin-bottom:12px">${step.desc}</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="exitDemoMode()" style="color:var(--gray-500);font-size:13px;font-weight:600;background:none;border:none;cursor:pointer">Exit Walkthrough</button>
+      <div>
+        <button onclick="prevDemoStep()" style="background:var(--gray-200);color:var(--gray-700);padding:6px 12px;border-radius:16px;font-size:13px;font-weight:600;border:none;cursor:pointer;margin-right:8px;">← Prev</button>
+        <button onclick="advanceDemoStep()" style="background:var(--pink);color:white;padding:6px 14px;border-radius:16px;font-size:13px;font-weight:600;border:none;cursor:pointer">Next Step →</button>
+      </div>
+    </div>`;
   document.body.appendChild(tooltip);
-  setTimeout(() => { if (tooltip.parentElement) tooltip.style.opacity = '0.7'; }, 4000);
 }
 
 function exitDemoMode() {
@@ -764,6 +1082,48 @@ function exitDemoMode() {
   document.getElementById('demo-banner').classList.add('hidden');
   const tooltip = document.getElementById('demo-tooltip');
   if (tooltip) tooltip.remove();
+  const karmaOverlay = document.getElementById('karma-demo-overlay');
+  if (karmaOverlay) karmaOverlay.remove();
+}
+
+function prevDemoStep() {
+  if (state.demoStep <= 0) return;
+  state.demoStep--;
+  runDemoStep(state.demoStep);
+}
+
+function showKarmaOrderWarning() {
+   const existing = document.getElementById('karma-demo-overlay');
+   if (existing) existing.remove();
+   
+   const overlay = document.createElement('div');
+   overlay.id = 'karma-demo-overlay';
+   overlay.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);width:90%;max-width:350px;background:white;border-radius:16px;box-shadow:0 8px 32px rgba(239,68,68,0.3);z-index:100;border:2px solid var(--red);animation:slideDown 0.3s ease;padding:20px;';
+   overlay.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+         <span style="font-size:28px;">🛵</span>
+         <div>
+            <div style="font-weight:700;font-size:16px;">New Order Request</div>
+            <div style="font-size:12px;color:var(--gray-500);">Rohit M. · 3.2km away · ₹85 payout</div>
+         </div>
+      </div>
+      <div style="background:rgba(239,68,68,0.06);border-radius:12px;padding:12px;border:1px solid var(--red);margin-bottom:12px;">
+         <div style="color:var(--red);font-weight:800;font-size:14px;margin-bottom:8px;">👉 Customer Risk Score: HIGH</div>
+         <ul style="font-size:12px;color:var(--gray-700);padding-left:20px;margin-bottom:0;">
+            <li>High Cancellation rate (34%)</li>
+            <li>Past delivery failures</li>
+            <li>Frequent payment issues</li>
+         </ul>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:var(--pink);text-align:center;margin-top:12px;">
+         🛡️ Coverage increased for failed delivery
+      </div>
+      <button onclick="this.parentElement.remove()" class="btn-primary full-width" style="margin-top:16px;">Accept Order Carefully</button>
+   `;
+   document.body.appendChild(overlay);
+   // Also scroll to karma orders list
+   const scrollEl = document.getElementById('screen-earnings').querySelector('.screen-scroll');
+   if(scrollEl) scrollEl.scrollTo({top: 400, behavior: 'smooth'});
 }
 
 // =========== LIVE TICKER ===========

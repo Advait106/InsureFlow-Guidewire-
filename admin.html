@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>InsureFlow Admin — Operations Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0A0B0F;
+      --surface: #13151C;
+      --surface2: #1A1D27;
+      --border: rgba(255,255,255,0.08);
+      --pink: #FF2D6B;
+      --pink-dim: rgba(255,45,107,0.15);
+      --orange: #FF6B35;
+      --green: #22C55E;
+      --green-dim: rgba(34,197,94,0.15);
+      --amber: #F59E0B;
+      --amber-dim: rgba(245,158,11,0.15);
+      --blue: #3B82F6;
+      --red: #EF4444;
+      --red-dim: rgba(239,68,68,0.15);
+      --text: #F1F5F9;
+      --text-muted: #64748B;
+      --text-dim: #94A3B8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    
+    /* AUTH GATE */
+    #auth-gate {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,45,107,0.15) 0%, transparent 70%), var(--bg);
+    }
+    .auth-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      padding: 40px; width: 100%; max-width: 400px;
+    }
+    .auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
+    .auth-logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #FF2D6B, #FF6B35); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .auth-logo span { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 800; }
+    .auth-badge { background: var(--pink-dim); color: var(--pink); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; margin-left: 8px; letter-spacing: 1px; }
+    .auth-title { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .auth-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+    .auth-input-wrap { margin-bottom: 16px; }
+    .auth-label { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block; }
+    .auth-input {
+      width: 100%; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .auth-input:focus { border-color: var(--pink); }
+    .auth-btn {
+      width: 100%; padding: 14px; background: linear-gradient(135deg, var(--pink), var(--orange));
+      border: none; border-radius: 10px; color: white; font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: opacity 0.2s;
+    }
+    .auth-btn:hover { opacity: 0.9; }
+    .auth-error { color: var(--red); font-size: 13px; margin-top: 8px; display: none; }
+    .auth-hint { color: var(--text-muted); font-size: 12px; margin-top: 16px; text-align: center; }
+    .auth-hint code { background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-family: 'DM Mono', monospace; }
+
+    /* ADMIN DASHBOARD */
+    #admin-dashboard { display: none; min-height: 100vh; }
+    
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 240px; z-index: 50;
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 24px 16px;
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; padding: 0 8px; }
+    .sidebar-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .sidebar-logo span { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 800; }
+    .sidebar-section { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; padding: 0 8px; margin-bottom: 6px; margin-top: 16px; }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: var(--text-dim); cursor: pointer;
+      transition: all 0.15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left;
+    }
+    .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+    .sidebar-item.active { background: var(--pink-dim); color: var(--pink); }
+    .sidebar-item span { font-size: 16px; }
+    .sidebar-footer { margin-top: auto; padding: 12px; background: var(--surface2); border-radius: 10px; }
+    .sf-name { font-weight: 700; font-size: 13px; }
+    .sf-role { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .logout-btn { display: block; margin-top: 10px; width: 100%; padding: 8px; background: var(--red-dim); color: var(--red); border: 1px solid var(--red); border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+    /* MAIN CONTENT */
+    .admin-main { margin-left: 240px; padding: 32px; min-height: 100vh; }
+    .admin-panel { display: none; }
+    .admin-panel.active { display: block; }
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+    .page-sub { color: var(--text-muted); font-size: 14px; }
+    
+    /* STATS GRID */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .stat-card.pink::before { background: linear-gradient(90deg, var(--pink), var(--orange)); }
+    .stat-card.green::before { background: var(--green); }
+    .stat-card.amber::before { background: var(--amber); }
+    .stat-card.red::before { background: var(--red); }
+    .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .stat-val { font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+    .stat-val.pink { color: var(--pink); }
+    .stat-val.green { color: var(--green); }
+    .stat-val.amber { color: var(--amber); }
+    .stat-val.red { color: var(--red); }
+    .stat-delta { font-size: 12px; }
+    .stat-delta.up { color: var(--green); }
+    .stat-delta.down { color: var(--red); }
+    
+    /* TABLES */
+    .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
+    .table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .table-title { font-weight: 700; font-size: 15px; }
+    .table-action { font-size: 12px; color: var(--pink); cursor: pointer; background: none; border: none; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 12px 20px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+    td { padding: 14px 20px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge.active { background: var(--green-dim); color: var(--green); }
+    .badge.pending { background: var(--amber-dim); color: var(--amber); }
+    .badge.fraud { background: var(--red-dim); color: var(--red); }
+    .badge.paid { background: var(--green-dim); color: var(--green); }
+    
+    /* CHARTS */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+    .chart-card-title { font-weight: 700; font-size: 14px; margin-bottom: 16px; color: var(--text-dim); }
+    .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
+    .bar { flex: 1; border-radius: 4px 4px 0 0; min-height: 4px; position: relative; cursor: pointer; transition: opacity 0.2s; }
+    .bar:hover { opacity: 0.8; }
+    .bar-label { font-size: 9px; color: var(--text-muted); text-align: center; margin-top: 4px; }
+    
+    /* ZONE HEATMAP */
+    .zone-heatmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .heat-zone { padding: 12px; border-radius: 10px; cursor: pointer; transition: transform 0.15s; }
+    .heat-zone:hover { transform: scale(1.03); }
+    .heat-zone.red { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.3); }
+    .heat-zone.amber { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.3); }
+    .heat-zone.green { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3); }
+    .hz-name { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+    .hz-risk { font-size: 11px; opacity: 0.8; }
+    .hz-claims { font-size: 10px; margin-top: 4px; opacity: 0.6; }
+    
+    /* TRIGGERS CONFIG */
+    .triggers-config { display: flex; flex-direction: column; gap: 10px; }
+    .trigger-config-row {
+      display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+      background: var(--surface2); border-radius: 12px; border: 1px solid var(--border);
+    }
+    .tcr-icon { font-size: 20px; width: 28px; }
+    .tcr-info { flex: 1; }
+    .tcr-name { font-weight: 700; font-size: 14px; }
+    .tcr-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .tcr-input {
+      width: 80px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px;
+      text-align: center; outline: none;
+    }
+    .tcr-input:focus { border-color: var(--pink); }
+    .tcr-toggle { width: 44px; height: 24px; background: var(--green); border-radius: 12px; position: relative; cursor: pointer; transition: background 0.2s; }
+    .tcr-toggle::after { content: ''; position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: transform 0.2s; }
+    .tcr-toggle.off { background: var(--surface2); }
+    .tcr-toggle.off::after { transform: translateX(-20px); }
+    
+    /* LIVE FEED */
+    .live-feed { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .live-feed-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .feed-item { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; display: flex; align-items: center; gap: 10px; }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); width: 50px; flex-shrink: 0; }
+    .feed-icon { width: 24px; text-align: center; }
+    .feed-text { flex: 1; }
+    .feed-amount { font-weight: 700; font-family: 'DM Mono', monospace; }
+    .feed-amount.paid { color: var(--green); }
+    .feed-amount.fraud { color: var(--red); }
+    
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .admin-main { margin-left: 0; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AUTH GATE -->
+  <div id="auth-gate">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">
+          <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4L8 14v10c0 10 8 18 16 20 8-2 16-10 16-20V14L24 4z" fill="white"/>
+            <path d="M17 24l5 5 9-10" stroke="#FF2D6B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span>InsureFlow</span>
+        <span class="auth-badge">ADMIN</span>
+      </div>
+      <h2 class="auth-title">Operator Login</h2>
+      <p class="auth-sub">InsureFlow Insurance Operations Dashboard<br>Restricted access — authorized personnel only</p>
+      <div class="auth-input-wrap">
+        <label class="auth-label">Username</label>
+        <input type="text" class="auth-input" id="auth-username" placeholder="admin" autocomplete="username">
+      </div>
+      <div class="auth-input-wrap">
+        <label class="auth-label">Password</label>
+        <input type="password" class="auth-input" id="auth-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" onclick="attemptLogin()">Access Dashboard</button>
+      <div class="auth-error" id="auth-error">Incorrect credentials. Access denied.</div>
+      <p class="auth-hint">Demo: username <code>admin</code> / password <code>insureflow2025</code></p>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="admin-dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+          <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4L8 14v10c0 10 8 18 16 20 8-2 16-10 16-20V14L24 4z" fill="white"/>
+          </svg>
+        </div>
+        <span>InsureFlow</span>
+      </div>
+
+      <div class="sidebar-section">Overview</div>
+      <button class="sidebar-item active" onclick="showPanel('overview', this)">
+        <span>📊</span> Dashboard
+      </button>
+      <button class="sidebar-item" onclick="showPanel('users', this)">
+        <span>👥</span> Users
+      </button>
+      <button class="sidebar-item" onclick="showPanel('claims', this)">
+        <span>💸</span> Claims & Payouts
+      </button>
+
+      <div class="sidebar-section">Risk Engine</div>
+      <button class="sidebar-item" onclick="showPanel('triggers', this)">
+        <span>⚡</span> Trigger Config
+      </button>
+      <button class="sidebar-item" onclick="showPanel('zones', this)">
+        <span>🗺️</span> Zone Heatmap
+      </button>
+      <button class="sidebar-item" onclick="showPanel('fraud', this)">
+        <span>🔍</span> Fraud Detection
+      </button>
+
+      <div class="sidebar-section">System</div>
+      <button class="sidebar-item" onclick="showPanel('api', this)">
+        <span>🔗</span> API Monitor
+      </button>
+      <button class="sidebar-item" onclick="showPanel('live', this)">
+        <span>📡</span> Live Feed
+      </button>
+
+      <div class="sidebar-footer">
+        <div class="sf-name" id="admin-name">Insurance Operator</div>
+        <div class="sf-role">InsureFlow Admin · Bengaluru</div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <!-- OVERVIEW PANEL -->
+      <div class="admin-panel active" id="panel-overview">
+        <div class="page-header">
+          <h1 class="page-title">Operations Dashboard</h1>
+          <p class="page-sub">Real-time overview — Bengaluru operations · <span id="live-time"></span></p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card pink">
+            <div class="stat-label">Active Partners</div>
+            <div class="stat-val pink" id="stat-users">12,847</div>
+            <div class="stat-delta up">↑ 3.2% from last week</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Premium Collected (Week)</div>
+            <div class="stat-val green" id="stat-premium">₹6.68L</div>
+            <div class="stat-delta up">↑ 8.4% vs target</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">Claims Paid (Week)</div>
+            <div class="stat-val amber" id="stat-claims">₹2.14L</div>
+            <div class="stat-delta">Loss ratio: 32%</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">Fraud Detected</div>
+            <div class="stat-val red" id="stat-fraud">47</div>
+            <div class="stat-delta up">Saved: ₹84,300</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-card-title">Claims by Day (This Week)</div>
+            <div class="bar-chart" id="claims-chart"></div>
+            <div style="display:flex;gap:4px;margin-top:4px" id="claims-labels"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">Premium vs Claims Revenue</div>
+            <div class="bar-chart" id="revenue-chart"></div>
+            <div style="display:flex;gap:4px;margin-top:4px" id="revenue-labels"></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">Recent Trigger Events</span>
+            <button class="table-action">View all →</button>
+          </div>
+          <table id="triggers-table">
+            <thead><tr>
+              <th>Time</th><th>Trigger</th><th>Zone</th><th>Partners Affected</th><th>Payout Initiated</th><th>Status</th>
+            </tr></thead>
+            <tbody id="triggers-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USERS PANEL -->
+      <div class="admin-panel" id="panel-users">
+        <div class="page-header">
+          <h1 class="page-title">Partner Management</h1>
+          <p class="page-sub">Active delivery partners with coverage</p>
+        </div>
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card green"><div class="stat-label">Total Active</div><div class="stat-val green">12,847</div></div>
+          <div class="stat-card amber"><div class="stat-label">High Risk Profile</div><div class="stat-val amber">892</div></div>
+          <div class="stat-card pink"><div class="stat-label">New This Week</div><div class="stat-val pink">384</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="table-title">Partner List (Sample)</span><button class="table-action">Export CSV →</button></div>
+          <table>
+            <thead><tr><th>Partner ID</th><th>Name</th><th>Zone</th><th>Weekly Baseline</th><th>Premium</th><th>Status</th><th>Fraud Score</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CLAIMS PANEL -->
+      <div class="admin-panel" id="panel-claims">
+        <div class="page-header">
+          <h1 class="page-title">Claims & Payouts</h1>
+          <p class="page-sub">Auto-processed zero-touch claims</p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card green"><div class="stat-label">Auto-Approved</div><div class="stat-val green">1,284</div><div class="stat-delta up">In under 60s</div></div>
+          <div class="stat-card amber"><div class="stat-label">Pending Review</div><div class="stat-val amber">23</div><div class="stat-delta">Flagged by AI</div></div>
+          <div class="stat-card red"><div class="stat-label">Auto-Rejected</div><div class="stat-val red">47</div><div class="stat-delta">Fraud detected</div></div>
+          <div class="stat-card pink"><div class="stat-label">Avg Payout Time</div><div class="stat-val pink">58s</div><div class="stat-delta up">SLA: 120s</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="table-title">Recent Claims</span></div>
+          <table>
+            <thead><tr><th>Claim ID</th><th>Partner</th><th>Trigger</th><th>Amount</th><th>Fraud Score</th><th>Time to Pay</th><th>Status</th></tr></thead>
+            <tbody id="claims-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TRIGGERS PANEL -->
+      <div class="admin-panel" id="panel-triggers">
+        <div class="page-header">
+          <h1 class="page-title">Trigger Configuration</h1>
+          <p class="page-sub">Parametric trigger thresholds — changes take effect immediately</p>
+        </div>
+        <div class="triggers-config" id="triggers-config-list"></div>
+      </div>
+
+      <!-- ZONES PANEL -->
+      <div class="admin-panel" id="panel-zones">
+        <div class="page-header">
+          <h1 class="page-title">Zone Risk Heatmap</h1>
+          <p class="page-sub">Bengaluru delivery zone risk distribution</p>
+        </div>
+        <div style="margin-bottom:16px">
+          <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="stat-card red"><div class="stat-label">High Risk</div><div class="stat-val red">3</div><div class="stat-delta down">Flood zones</div></div>
+            <div class="stat-card amber"><div class="stat-label">Medium Risk</div><div class="stat-val amber">4</div></div>
+            <div class="stat-card green"><div class="stat-label">Safe</div><div class="stat-val green">5</div></div>
+            <div class="stat-card" style="border-color:var(--blue)"><div class="stat-label">Surge Active</div><div class="stat-val" style="color:var(--blue)">2</div></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">Zone Risk Grid — Bengaluru</div>
+          <div class="zone-heatmap" id="admin-zone-grid"></div>
+        </div>
+      </div>
+
+      <!-- FRAUD PANEL -->
+      <div class="admin-panel" id="panel-fraud">
+        <div class="page-header">
+          <h1 class="page-title">Fraud Detection Engine</h1>
+          <p class="page-sub">"GPS is a claim. Behavior is evidence."</p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card red"><div class="stat-label">Fraud Detected (Month)</div><div class="stat-val red">184</div><div class="stat-delta up">Saved: ₹3.2L</div></div>
+          <div class="stat-card amber"><div class="stat-label">Under Review</div><div class="stat-val amber">23</div></div>
+          <div class="stat-card green"><div class="stat-label">False Positive Rate</div><div class="stat-val green">2.1%</div></div>
+          <div class="stat-card pink"><div class="stat-label">Auto-Detect Rate</div><div class="stat-val pink">97%</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="table-title">Flagged Claims — Fraud Analysis</span></div>
+          <table>
+            <thead><tr><th>Claim ID</th><th>Partner ID</th><th>Fraud Score</th><th>Triggered Layer</th><th>Pattern</th><th>Action</th></tr></thead>
+            <tbody id="fraud-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- API MONITOR PANEL -->
+      <div class="admin-panel" id="panel-api">
+        <div class="page-header">
+          <h1 class="page-title">API Integration Monitor</h1>
+          <p class="page-sub">Live status of all external data feeds</p>
+        </div>
+        <div id="api-status-list"></div>
+      </div>
+
+      <!-- LIVE FEED PANEL -->
+      <div class="admin-panel" id="panel-live">
+        <div class="page-header">
+          <h1 class="page-title">Live Event Feed</h1>
+          <p class="page-sub">Real-time system events across all Bengaluru zones</p>
+        </div>
+        <div class="live-feed">
+          <div class="live-feed-header">
+            <div class="live-dot"></div>
+            <span style="font-weight:600;font-size:14px">Live — updating every 5s</span>
+            <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">Bengaluru Operations</span>
+          </div>
+          <div id="live-feed-list"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
